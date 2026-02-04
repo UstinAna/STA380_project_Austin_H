@@ -1,0 +1,48 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{setspace}
+
+\title{Project Proposal: A Simulation Study of Permutation Tests}
+\author{Austin Hua}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\onehalfspacing
+
+\section*{Introduction and Objective}
+
+Permutation tests are nonparametric hypothesis testing procedures that rely on resampling rather than distributional assumptions. With increased computational power, permutation tests have become a practical alternative to classical parametric tests such as the two-sample t-test. The objective of this project is to compare the performance of permutation tests and parametric t-tests under different data-generating scenarios using Monte Carlo simulation.
+
+\section*{Methodology}
+
+This project will use Monte Carlo simulation to generate synthetic datasets under both the null and alternative hypotheses. Data will be generated from various distributions, including normal and non-normal distributions, to assess robustness to violations of model assumptions. For each simulated dataset, a two-sample t-test and a permutation test will be conducted.
+
+The permutation test will be implemented by repeatedly permuting group labels and recalculating the test statistic to approximate its sampling distribution. The empirical rejection rates of both methods will be compared across simulations.
+
+\section*{Computational Techniques}
+
+The project will incorporate several computational methods covered in the course, including:
+\begin{itemize}
+    \item Random variable generation
+    \item Monte Carlo simulation
+    \item Resampling methods
+    \item Permutation testing
+\end{itemize}
+
+\section*{Data}
+
+All data will be generated through simulation to allow full control over the underlying distributions and parameters. This approach enables direct evaluation of test performance under known conditions.
+
+\section*{Expected Outcomes}
+
+The expected outcome is that permutation tests will maintain appropriate type I error rates even when classical assumptions are violated, while parametric tests may perform poorly in such settings. The results will illustrate the advantages and limitations of each approach and demonstrate the practical value of computational methods in statistical inference.
+
+\section*{Software}
+
+All simulations and analyses will be conducted using either Python or R.
+
+\end{document}
