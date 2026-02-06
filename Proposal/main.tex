@@ -1,48 +1,55 @@
-\documentclass[11pt]{article}
-
-\usepackage[margin=1in]{geometry}
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=0.75in]{geometry}
+\usepackage[dvipsnames]{xcolor} % adding colour
 \usepackage{amsmath, amssymb}
-\usepackage{setspace}
-
-\title{Project Proposal: A Simulation Study of Permutation Tests}
-\author{Austin Hua}
-\date{\today}
+\usepackage{hyperref}
 
 \begin{document}
-\maketitle
+    \begin{center}
+        \LARGE{\textbf{STA380 Project Proposal}} \\
+        \vspace{1em}
+        \Large{A Simulation Study of Permutation Tests} \\
+        \vspace{1em}
+        \normalsize\textbf{Austin Hua} \\
+        \normalsize{austin.hua@mail.utoronto.com} \\
+        \vspace{1em}
+        \normalsize{University of Toronto, Mississauga}
+    \end{center}
 
-\onehalfspacing
+    \begin{normalsize}
+        This proposal describes a simulation-based project to explore the performance of permutation tests compared to classical parametric tests under various scenarios.
 
-\section*{Introduction and Objective}
+        \section*{Project Topic}
+        A Simulation Study of Permutation Tests.
 
-Permutation tests are nonparametric hypothesis testing procedures that rely on resampling rather than distributional assumptions. With increased computational power, permutation tests have become a practical alternative to classical parametric tests such as the two-sample t-test. The objective of this project is to compare the performance of permutation tests and parametric t-tests under different data-generating scenarios using Monte Carlo simulation.
+        \section*{Simulation vs. Dataset}
+        This project will use \textbf{pure simulation}. Synthetic datasets will be generated under both the null and alternative hypotheses to compare statistical test performance.
 
-\section*{Methodology}
+        \section*{Project Details}
+        The project will implement the following computational methods:
+        \begin{itemize}
+            \item Random variable generation from normal and non-normal distributions
+            \item Monte Carlo simulation to assess type I error and power
+            \item Resampling methods for permutation testing
+            \item Comparison with parametric t-tests
+        \end{itemize}
+        For each simulated dataset, a permutation test will be conducted by repeatedly permuting group labels to approximate the null distribution. Empirical rejection rates and performance metrics of both permutation and parametric tests will be summarized and visualized.
 
-This project will use Monte Carlo simulation to generate synthetic datasets under both the null and alternative hypotheses. Data will be generated from various distributions, including normal and non-normal distributions, to assess robustness to violations of model assumptions. For each simulated dataset, a two-sample t-test and a permutation test will be conducted.
+        \section*{User Inputs (Shiny Components)}
+        Users will be able to modify the following inputs interactively:
+        \begin{enumerate}
+            \item \textbf{Sample size} of each group
+            \item \textbf{Number of permutations} to run in the permutation test
+            \item \textbf{Random seed} for reproducibility
+            \item \textbf{Choice of data distribution}, e.g., normal, uniform, or skewed
+            \item \textbf{Test statistic} to use (e.g., mean difference, t-statistic, median difference)
+            \item \textbf{Plot options} such as histogram or scatter plot for visualizing permutation distributions
+            \item Option to \textbf{download simulated data or results} as a CSV file
+        \end{enumerate}
 
-The permutation test will be implemented by repeatedly permuting group labels and recalculating the test statistic to approximate its sampling distribution. The empirical rejection rates of both methods will be compared across simulations.
+        \section*{Generative AI Usage Statement}
+        No generative AI was used in creating this proposal.
 
-\section*{Computational Techniques}
-
-The project will incorporate several computational methods covered in the course, including:
-\begin{itemize}
-    \item Random variable generation
-    \item Monte Carlo simulation
-    \item Resampling methods
-    \item Permutation testing
-\end{itemize}
-
-\section*{Data}
-
-All data will be generated through simulation to allow full control over the underlying distributions and parameters. This approach enables direct evaluation of test performance under known conditions.
-
-\section*{Expected Outcomes}
-
-The expected outcome is that permutation tests will maintain appropriate type I error rates even when classical assumptions are violated, while parametric tests may perform poorly in such settings. The results will illustrate the advantages and limitations of each approach and demonstrate the practical value of computational methods in statistical inference.
-
-\section*{Software}
-
-All simulations and analyses will be conducted using either Python or R.
-
+    \end{normalsize}
 \end{document}
