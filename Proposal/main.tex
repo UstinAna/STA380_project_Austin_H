@@ -1,6 +1,55 @@
-# Data
-A <- c(5.6, 6.0, 5.2, 5.8, 6.1, 5.7, 5.9, 6.2)
-B <- c(5.0, 5.6, 4.9, 5.6, 6.0, 5.7, 6.0, 6.1)
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=0.75in]{geometry}
+\usepackage[dvipsnames]{xcolor} % adding colour
+\usepackage{amsmath, amssymb}
+\usepackage{hyperref}
 
-# Paired t-test (testing if B lowers discomfort more than A)
-t.test(A, B, paired = TRUE, alternative = "greater")
+\begin{document}
+    \begin{center}
+        \LARGE{\textbf{STA380 Project Proposal}} \\
+        \vspace{1em}
+        \Large{A Simulation Study of Permutation Tests} \\
+        \vspace{1em}
+        \normalsize\textbf{Austin Hua} \\
+        \normalsize{austin.hua@mail.utoronto.com} \\
+        \vspace{1em}
+        \normalsize{University of Toronto, Mississauga}
+    \end{center}
+
+    \begin{normalsize}
+        This proposal describes a simulation-based project to explore the performance of permutation tests compared to classical parametric tests under various scenarios.
+
+        \section*{Project Topic}
+        A Simulation Study of Permutation Tests.
+
+        \section*{Simulation vs. Dataset}
+        This project will use \textbf{pure simulation}. Synthetic datasets will be generated under both the null and alternative hypotheses to compare statistical test performance.
+
+        \section*{Project Details}
+        The project will implement the following computational methods:
+        \begin{itemize}
+            \item Random variable generation from normal and non-normal distributions
+            \item Monte Carlo simulation to assess type I error and power
+            \item Resampling methods for permutation testing
+            \item Comparison with parametric t-tests
+        \end{itemize}
+        For each simulated dataset, a permutation test will be conducted by repeatedly permuting group labels to approximate the null distribution. Empirical rejection rates and performance metrics of both permutation and parametric tests will be summarized and visualized.
+
+        \section*{User Inputs (Shiny Components)}
+        Users will be able to modify the following inputs interactively:
+        \begin{enumerate}
+            \item \textbf{Sample size} of each group
+            \item \textbf{Number of permutations} to run in the permutation test
+            \item \textbf{Random seed} for reproducibility
+            \item \textbf{Choice of data distribution}, e.g., normal, uniform, or skewed
+            \item \textbf{Test statistic} to use (e.g., mean difference, t-statistic, median difference)
+            \item \textbf{Plot options} such as histogram or scatter plot for visualizing permutation distributions
+            \item Option to \textbf{download simulated data or results} as a CSV file
+        \end{enumerate}
+
+        \section*{Generative AI Usage Statement}
+        No generative AI was used in creating this proposal.
+
+    \end{normalsize}
+\end{document}

@@ -1,0 +1,240 @@
+---
+title: "Monte Carlo and Permutation Methods"
+author: "Author: Austin Hua"
+date: "date: `r Sys.Date()`"
+output: html_document
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+set.seed(123)
+
+refs <- '@book{efron1994introduction,
+  title     = {An Introduction to the Bootstrap},
+  author    = {Efron, Bradley and Tibshirani, Robert J.},
+  year      = {1994},
+  publisher = {Chapman and Hall/CRC},
+  doi       = {10.1201/9780429246593}
+}
+
+@book{good2005permutation,
+  title     = {Permutation, Parametric and Bootstrap Tests of Hypotheses},
+  author    = {Good, Phillip},
+  year      = {2005},
+  publisher = {Springer},
+  doi       = {10.1007/b138696}
+}
+
+@article{fisher1935design,
+  title   = {The Design of Experiments},
+  author  = {Fisher, R. A.},
+  year    = {1935},
+  journal = {Oliver and Boyd},
+  url     = {https://ia600809.us.archive.org/15/items/in.ernet.dli.2015.502684/2015.502684.The-Design_text.pdf}
+}
+
+@manual{r2023,
+  title        = {R: A Language and Environment for Statistical Computing},
+  author       = {{R Core Team}},
+  organization = {R Foundation for Statistical Computing},
+  address      = {Vienna, Austria},
+  year         = {2023},
+  url          = {https://www.R-project.org/}
+}'
+writeLines(refs, "references.bib")
+```
+
+## Introduction
+
+Computational methods play an important role in modern statistical inference, particularly when classical assumptions may not hold or when exact sampling distributions are difficult to derive. In this vignette, I demonstrate a small collection of Monte Carlo and resampling-based functions developed for this project.
+
+The focus is on two-sample inference using simulation, permutation tests, and repeated Monte Carlo experiments. Permutation tests are a class of nonparametric procedures that construct a reference distribution by resampling from the observed data, making them valid without parametric assumptions [@efron1994introduction]. Their properties under both the null and alternative hypotheses can be evaluated systematically using Monte Carlo simulation [@good2005permutation]. All computations and visualizations are carried out in R [@r2023].
+
+```{r load-functions}
+source("../R/functions.R")
+```
+
+## Simulating Two-Sample Data
+
+We begin by simulating two independent samples from normal distributions. This setting approximately satisfies the assumptions required for a classical two-sample t-test.
+
+```{r simulate-normal}
+sim_data <- simulate_two_sample(
+  n1    = 30,
+  n2    = 30,
+  dist  = "normal",
+  delta = 0
+)
+
+x <- sim_data$x
+y <- sim_data$y
+```
+
+### Assumption Check: Distribution Shape
+
+Before applying any hypothesis tests, it is useful to visually inspect the distribution of the data.
+
+```{r hist-normal}
+hist(x, probability = TRUE, col = "lightgray",
+     main = "Histogram of Sample X (Normal)",
+     xlab = "Value")
+lines(density(x), lwd = 2)
+```
+
+The histogram and density curve suggest approximate normality, making the use of a t-test reasonable in this scenario.
+
+## Permutation Test for Difference in Means
+
+When assumptions such as normality or equal variances are questionable, permutation tests provide a flexible, distribution-free alternative. The validity of the permutation test relies on exchangeability under the null hypothesis; when the two groups arise from the same distribution, all label permutations are equally likely.
+
+### Hypothesis Setup
+
+We test
+
+$$H_0: \mu_X - \mu_Y = 0$$
+
+versus
+
+$$H_A: \mu_X - \mu_Y \neq 0.$$
+
+The test statistic is the difference in sample means,
+
+$$T = \bar{X} - \bar{Y}.$$
+
+The permutation distribution of $T$ is approximated by repeatedly permuting group labels and recomputing the statistic. The two-sided p-value is computed as
+
+$$p = \frac{1 + \sum_{b=1}^{B} \mathbf{1}(|T_b| \geq |T_\text{obs}|)}{B + 1},$$
+
+where $T_b$ is the statistic on the $b$-th permutation and $T_\text{obs}$ is the observed statistic. The $+1$ in the numerator and denominator counts the observed data itself, ensuring the p-value is never exactly zero.
+
+```{r perm-test}
+perm_res <- perm_test(x, y, B = 1000, seed = 1)
+perm_res$p_value
+```
+
+```{r perm-plot}
+hist(perm_res$perm_stats, breaks = 30, col = "lightgray",
+     main = "Permutation Distribution of Mean Difference",
+     xlab = "Mean Difference")
+abline(v =  perm_res$obs_stat, col = "red", lwd = 2, lty = 1)
+abline(v = -perm_res$obs_stat, col = "red", lwd = 2, lty = 2)
+legend("topright",
+       legend = c("Observed statistic", "Mirror (two-sided)"),
+       col    = "red", lty = c(1, 2), lwd = 2)
+```
+
+The permutation distribution is approximately symmetric and centred at zero under the null, as expected. The observed statistic (solid red line) falls well within the bulk of the distribution, consistent with the large p-value.
+
+## Monte Carlo Comparison of Tests Under Normality
+
+To study the long-run behavior of the t-test and permutation test, a Monte Carlo experiment is conducted under the null hypothesis ($\delta = 0$) with normally distributed data. The significance level is fixed at $\alpha = 0.05$.
+
+```{r mc-compare}
+mc_res <- mc_compare_tests(
+  nsim  = 500,
+  n1    = 30,
+  n2    = 30,
+  dist  = "normal",
+  delta = 0,
+  alpha = 0.05,
+  seed  = 42
+)
+
+mc_res
+```
+
+```{r mc-se}
+perm_rate <- mc_res$rejection_rates["permutation_test"]
+t_rate    <- mc_res$rejection_rates["t_test"]
+
+mc_se_perm <- sqrt(perm_rate * (1 - perm_rate) / 500)
+mc_se_t    <- sqrt(t_rate    * (1 - t_rate)    / 500)
+
+c(permutation_mc_se = round(mc_se_perm, 4),
+  t_test_mc_se      = round(mc_se_t,    4))
+```
+
+Both the permutation test and the classical t-test maintain Type I error rates close to the nominal 0.05 level under normal data. The Monte Carlo standard error for each estimated rejection rate is approximately $\sqrt{\hat{p}(1 - \hat{p}) / n_\text{sim}}$, equal to `r round(mc_se_perm, 4)` and `r round(mc_se_t, 4)` for the permutation and t-test respectively. Both estimates fall within two Monte Carlo standard errors of the nominal level, indicating correct calibration when model assumptions are satisfied.
+
+## Behavior Under Non-Normal Data
+
+Next, we consider a setting where the normality assumption is violated by simulating data from an exponential distribution. Unlike the normal, the exponential is strongly right-skewed and does not satisfy the distributional assumptions of the t-test.
+
+```{r skewed-data}
+exp_data <- simulate_two_sample(
+  n1    = 30,
+  n2    = 30,
+  dist  = "exponential",
+  delta = 0
+)
+
+hist(exp_data$x, probability = TRUE, col = "lightgray",
+     main = "Histogram of Exponential Data",
+     xlab = "Value")
+lines(density(exp_data$x), lwd = 2)
+```
+
+The strong right skew confirms the departure from normality. We now evaluate Type I error for both tests under this distribution.
+
+```{r mc-exp-null}
+mc_exp <- mc_compare_tests(
+  nsim  = 500,
+  n1    = 30,
+  n2    = 30,
+  dist  = "exponential",
+  delta = 0,
+  alpha = 0.05,
+  seed  = 42
+)
+
+mc_exp
+```
+
+Both tests maintain Type I error close to the nominal 0.05 level even under skewed data at this sample size, suggesting both are reasonably robust. We also evaluate power under a location shift of $\delta = 0.8$.
+
+```{r mc-exp-power}
+mc_power <- mc_compare_tests(
+  nsim  = 500,
+  n1    = 30,
+  n2    = 30,
+  dist  = "exponential",
+  delta = 0.8,
+  alpha = 0.05,
+  seed  = 42
+)
+
+mc_power
+```
+
+Under a location shift, both tests exhibit increased empirical power. Their relative performance under skewed data is informative: the permutation test does not rely on parametric distributional assumptions, so differences in rejection rates reflect the robustness of each approach to departures from normality.
+
+```{r summary-table}
+summary_table <- rbind(
+  Normal_Null = mc_res$rejection_rates,
+  Exp_Null    = mc_exp$rejection_rates,
+  Exp_Power   = mc_power$rejection_rates
+)
+
+round(summary_table, 3)
+```
+
+Table 1 summarizes empirical rejection rates across all scenarios. These results are based on moderate sample sizes ($n_1 = n_2 = 30$); smaller samples may exhibit increased Type I error distortion or reduced power under skewness.
+
+## Discussion
+
+These examples demonstrate how Monte Carlo simulation and permutation tests can be used both for statistical inference and for evaluating the operating characteristics of testing procedures.
+
+Under normality, the permutation test and the classical t-test exhibit nearly identical performance in terms of Type I error control and power. This reflects the asymptotic equivalence of permutation and parametric procedures when distributional assumptions are satisfied: the t-test is optimal in this setting, and the permutation test recovers similar behavior [@fisher1935design].
+
+Under skewed exponential data, both tests continue to maintain Type I error close to the nominal level at moderate sample sizes, illustrating the robustness of the t-test to moderate skewness due to the central limit theorem, which ensures approximate normality of the sampling distribution of the mean for sufficiently large samples. In contrast, the t-test relies on asymptotic normality or parametric assumptions for validity. The permutation test retains exact finite-sample validity under exchangeability, providing theoretical guarantees that do not depend on distributional assumptions. This makes it a natural choice when the underlying distribution is unknown or non-normal.
+
+The Monte Carlo framework used here — repeatedly generating data, applying each test, and recording rejections — is a standard technique for studying the empirical properties of statistical procedures. By varying the sample size, effect size, and distribution, one can construct power curves and robustness assessments that go well beyond what analytical derivations typically provide.
+
+A practical limitation of the permutation test is computational cost: with $B$ permutations per test and $n_\text{sim}$ Monte Carlo replications, the total number of statistic evaluations is $B \times n_\text{sim}$. For large-scale simulation studies, efficient implementations — such as the pooled t-statistic computed directly rather than via repeated calls to `t.test()` — are important for feasibility.
+
+## Generative AI Statement
+
+Generative AI tools were used to assist with debugging and improving code clarity. All statistical reasoning, implementation decisions, and final writing were completed by the author.
+
+## References
