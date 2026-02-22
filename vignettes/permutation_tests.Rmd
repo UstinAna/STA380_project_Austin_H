@@ -2,12 +2,8 @@
 title: "Monte Carlo and Permutation Methods"
 author: "Author: Austin Hua"
 date: "date: `r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Monte Carlo and Permutation Methods}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
-  bibliography: references.bib
+output: html_document
+bibliography: references.bib
 ---
 
 ```{r setup, include=FALSE}
