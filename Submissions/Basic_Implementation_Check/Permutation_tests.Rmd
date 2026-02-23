@@ -1,11 +1,8 @@
 ---
 title: "Monte Carlo and Permutation Methods"
-author: "Austin Hua"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Monte Carlo and Permutation Methods}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+author: "Author: Austin Hua"
+date: "2026-02-22"
+output: html_document
 bibliography: references.bib
 ---
 
@@ -55,7 +52,7 @@ Computational methods play an important role in modern statistical inference, pa
 The focus is on two-sample inference using simulation, permutation tests, and repeated Monte Carlo experiments. Permutation tests are a class of nonparametric procedures that construct a reference distribution by resampling from the observed data, making them valid without parametric assumptions [@efron1994introduction]. Their properties under both the null and alternative hypotheses can be evaluated systematically using Monte Carlo simulation [@good2005permutation]. All computations and visualizations are carried out in R [@r2023].
 
 ```{r load-functions}
-source("../R/functions.R")
+source("functions.R")
 ```
 
 ## Simulating Two-Sample Data
@@ -238,6 +235,6 @@ A practical limitation of the permutation test is computational cost: with $B$ p
 
 ## Generative AI Statement
 
-Generative AI tools were used to assist with debugging and improving code clarity. All statistical reasoning, implementation decisions, and final writing were completed by the author.
+Generative AI tools were used to assist with debugging, improving code clarity, and guidance on R package structure. All statistical reasoning, implementation decisions, and final writing were completed by the author.
 
 ## References

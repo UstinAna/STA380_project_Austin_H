@@ -1,3 +1,5 @@
+source("functions.R")
+
 # Simple helper used in distribution shape tests
 kurtosis <- function(x) {
   m2 <- mean((x - mean(x))^2)
