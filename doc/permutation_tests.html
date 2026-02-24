@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Austin Hua" />
+
+
+<title>Monte Carlo and Permutation Methods</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">
+
+div.csl-bib-body { }
+div.csl-entry {
+clear: both;
+margin-bottom: 0em;
+}
+.hanging div.csl-entry {
+margin-left:2em;
+text-indent:-2em;
+}
+div.csl-left-margin {
+min-width:2em;
+float:left;
+}
+div.csl-right-inline {
+margin-left:2em;
+padding-left:1em;
+}
+div.csl-indent {
+margin-left: 2em;
+}
+</style>
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Monte Carlo and Permutation Methods</h1>
+<h4 class="author">Austin Hua</h4>
+
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>Computational methods play an important role in modern statistical
+inference, particularly when classical assumptions may not hold or when
+exact sampling distributions are difficult to derive. In this vignette,
+I demonstrate a small collection of Monte Carlo and resampling-based
+functions developed for this project.</p>
+<p>The focus is on two-sample inference using simulation, permutation
+tests, and repeated Monte Carlo experiments. Permutation tests are a
+class of nonparametric procedures that construct a reference
+distribution by resampling from the observed data, making them valid
+without parametric assumptions <span class="citation">(Efron and
+Tibshirani 1994)</span>. Their properties under both the null and
+alternative hypotheses can be evaluated systematically using Monte Carlo
+simulation <span class="citation">(Good 2005)</span>. All computations
+and visualizations are carried out in R <span class="citation">(R Core
+Team 2023)</span>.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;../R/functions.R&quot;</span>)</span></code></pre></div>
+</div>
+<div id="simulating-two-sample-data" class="section level2">
+<h2>Simulating Two-Sample Data</h2>
+<p>We begin by simulating two independent samples from normal
+distributions. This setting approximately satisfies the assumptions
+required for a classical two-sample t-test.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>sim_data <span class="ot">&lt;-</span> <span class="fu">simulate_two_sample</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="at">n1    =</span> <span class="dv">30</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="at">n2    =</span> <span class="dv">30</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="at">dist  =</span> <span class="st">&quot;normal&quot;</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="at">delta =</span> <span class="dv">0</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>)</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>x <span class="ot">&lt;-</span> sim_data<span class="sc">$</span>x</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>y <span class="ot">&lt;-</span> sim_data<span class="sc">$</span>y</span></code></pre></div>
+<div id="assumption-check-distribution-shape" class="section level3">
+<h3>Assumption Check: Distribution Shape</h3>
+<p>Before applying any hypothesis tests, it is useful to visually
+inspect the distribution of the data.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">hist</span>(x, <span class="at">probability =</span> <span class="cn">TRUE</span>, <span class="at">col =</span> <span class="st">&quot;lightgray&quot;</span>,</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">&quot;Histogram of Sample X (Normal)&quot;</span>,</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">&quot;Value&quot;</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">density</span>(x), <span class="at">lwd =</span> <span class="dv">2</span>)</span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASAAAAEgCAMAAAAjXV6yAAAAzFBMVEUAAAAAADoAAGYAOjoAOmYAOpAAZmYAZpAAZrY6AAA6ADo6AGY6OgA6Ojo6OmY6OpA6ZpA6ZrY6kLY6kNtmAABmADpmOgBmOjpmZgBmZjpmkLZmkNtmtrZmtttmtv+QOgCQZgCQZjqQkGaQkLaQtpCQttuQtv+Q27aQ2/+2ZgC2Zjq2ZpC2kGa2tpC225C227a229u22/+2/9u2///T09PbkDrbkGbbtmbbtpDb27bb29vb/7bb/9vb////tmb/25D/27b//7b//9v///9T7XxGAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAMIUlEQVR4nO2dC5vjNhWGlWUGZmAoLUm30NIZemW8QMvQSbsLxDuJ//9/QhdLlmPZ35EtOd7kfM/TbuLIR0evdZdGFhVrUOLUDixdDAiIAQExICAGBMSAgBgQEAMCYkBADAiIAQExICAGBMSAgBgQEAMCYkBADAiIAQExICAGBMSAgBgQEAMCYkBADAiIAQExICAGBMSAgBgQEAMC6gA6PIjrnfn3xn3xfv77T4k9OLy5FeKT+vM/7oRYffwUc3vHRan3t+LVT96/SvvN6rEqhLjXn2XiaIoE9PL6VWpApZBa27i1Vvf024OAqq1QBJS9++aSDCcBqdDJAHVUiOSAtkI+WfuxVkQkYUAGjcHkrqyV/xpZ6hz0s834hfX+7WdC/Opz7djhjRBXj5qcTOu3r8Wrp+rtaxnuo0fjyds7sfqy+vlWhmqicQa0yRpRoQJWL/VzHzAiY/tRGrh6cv4qL1afNKRU4fqnV8BkRlWRFMZ/C6hJRu36j52oKIC27rFaQPUV7ZkuFqu75vL1rqxLyqPyxOiunTEaA21AtuZY10Wvx0gh3I/GxTrIVZPzTAz33nd349oC8pJRu/7fTlQhQFY1IGVtV/0iTBZVN8kUGG4mHTe7Q2G5XT9V/5F3/WZnkqkcX6t7xZd1ePt8nYF2EVt9/i/nR78RFd2TumKfYaG+G7C1NLKm8NU1hgz3J+mpAdT2QrveiepAACTtXNVe14DqJ12YTKU+S8MGkH1k71R7dKOum+d7vfP99w14gOq4r77bASN1Y6Tut89w7XJJrVI0hl2tI+/4QVow39pe2ObtKCoCIHPFFFVtzJZClTT7uZXWw1fWgPHEPbC1i8MZ8AFV1S93rqgMGamT5hyQV12Z89PRZKg6cnWjrOn+tvGaaN+LblSUOujltYn8+9ozW8XJZ3RvP/uAlG9X37zb9ALyDbQByZvffX1bP5t+IzUgdb92sRQdQNv2Vw+Q/Pjrxmzbi05UwSLW7Qe9fH1nq1RCDjLO7PsB9eQgF6BORr+RQA466jrJ0Ks/e5WQB8iwI+ag9+SO4uGvTY3TXwfpWPQjcfVrAFBPHaQS9YWM7q1qngeNBOqgo36NDLFWmdBrFhwgXX936qAwoJIASLr6R13OdJWv7PS3YjYHXe9Ub6YvBw20Yq76GzQSaMVk1+Vl4x5nKepq1oN/457M1gAKeDEuB71pyncphvtBrg4arKSPeiDHrZioy/FQJe2Ha/pBfl58NNHUyJpm3uT3bj9oSh2k25aP1BBSd5uf6i7oF+YGeekPT51W7Oq7retwdAF5BvxK+qBjMg3mkBEZ27/lzx83PemXr27Nd1vAbizxtX0k1zu/dr8JekFoxUaqCI2IsmnEkLBsN5ZkTQZU6LkKSZs6+kuhEYBkZoqYI2g0GZDtgox7PiM1ZlJhO+4RTi9iL5/dxk5yTdYYQPvNqJkannIFYkBADAiIAQExICAGBMSAgBgQEAMCYkBADAiIAQExICAGBMSAgBgQEAMCYkBADAiIAQExICAGBMSAgBgQEAMCYkBADAiIAQExICAGBMSAgD4EQCKg+SKfLabxEs8dMSBfDAiIAQExICAGBHQGgPI2v2cAKJe52igDAkYZEDDKgIBRBgSMMiBglAEBowwIGP3QAL2/7f3bvcsG5E5hEb0n/Fw2oKo0f0LMOahX+43622YGNKBi9ciABrUVawY0KHVWDwMa0tCf6DOgec3VRj9AQNvL6wfV56SNtHIRU67b1qlok82l01IAVQkYnTsgg6j/EBB7LFRviDMHpI66uZcU+s5K2trsVfbls3MGpMbqhkzZk0EOD80ZZD0MpzseqO2XAUifRz2s/cZ1EPsYTnQ8vA1oIYA+NXz6kl5lz0F+zmljWhSgvi6g/s2OMXLUQYFeVD+k2QEVjSdDzbydU+w98W604wOdzBCjE+agROZi7xvqg0syx4gWPxZLbG54jGK4tBBdGCAwhnMZpyE0N6D9Zu2WLCa99iDO8U6rHibllSyL6EJykCs7w7Vvq3Y2oS8JEG6eWk28IXSaocbaO154sjlS6A4fDMjccQpAhTr5/KYqJh1aGw3ouAtIAPQ80GdKL28sdi87yPdDQ40Yc7TQHT4kQM8nA1SoQ7PHABpshAZue+6Ms0iA5iTkFbEbtbC838xZxLoDURqgGQm15oPUSximnZsdDaiT8lCwIKCZCJ2ymQ9NZFABod53Mp0QEHmipw/QLISaSOCEfJw5QthJgOYi5FXSKd49F+EyfaqwJ9jMgFRHOqG57i8hBVJODFabTOAyNUXejHwKc91fOiTkf4GUdy8FgxmbMxByMUxt4I/MdX/p5JTpgOYg1ERQEl7ModZddaj43R1HQy4zaZEAUG5C/u4O2IptV+qNjPq1QdMA2WmvqYBmIBRj3qyL6ZXpyYB6Ux4HKD+hGOu2Hi+ud9MAiXSAshPyjOt3QxYDjb1bWS1uJgFyDXcKQLkraq+SXj1u1Wh+gJDFYl7YN2yu80uXTxpAmQl5zfxar7gPzgfZtefDwyRAQymPB5SXUKujqADlmlH0F7cSA8paD3VyUDFp1p4EaDDlYwDlJHRcB21p73EbX0mLHICq+Oleqtqt2NgXzRHmpG3D1VolTAaoJxMFh76RSYsLPt5cYBU1KaBgJgpaS5WiUQKAjqYukgKqAvkjJSAzFgM19IRtwIFV1MSAXIlqR5oIUFGP0gc3mE3ZBmwA4ZRPAdRUOl6kaQCVzRu7+1uxSZs4A8vMGQBVXsVcJQTkzZYNrM1P2gYcWGbOA0hH1j9ZOw6QNwIbGGpMy0EBd7MBshGGEI0EBPOG0pRtwEFfcwKqLKMZAU3YBhxem8gMyJRrwgabIRN1wmmAiOYC18PVQX5AXUKLBNRXX84AqINoJKBmqJIBkGpzTwfo+blFaAlDjeAYMS0govzgSwJ0nJiIlGcKtmBAoncNbE5ATTFbGiDn14kBOULLAtSU/ZMDGrlJPy8gr24+PaBxm/TTAGqaDR9Qu3U9PSDj0HJyULtpXwKg5xG7Y/MBOu7hLwJQ/AbrXIC6Y8TFAIpLcr6e9MwppwaLJZQL0PwpJweLI5QBUHjgtRxAcZsd0gOiD0xPBShqKT81IBExtXEyQDF5KA4QXjjsX23Jn3JiMONnFkDUhcPlA6KnOwYQednnAwBEVkxw8sLhpQLiHIREXTi8WEDUhcPLBUQ0x4AYENLwLlcG1LFyNOW6aJ0C0BmLAQElHqyenxIPVs9PiYcatdFFKx8g8jYrqlHqLp9TBBsTnJ6D0kb+wQAiDFbjjJ4dIDxYjTN6foASG2VAacIxoCUGGxk8rVEGlCbc+QE6JzEgIAYExICAGBAQAwJiQEAMCIgBATEgIAYExICAGBBQDkB6eZG2cPb+d2gJsqSeioVNRXlmlQHQ4UGmaCsohwvvN2iNVh1LU1IIYVNRnjllAGRO2KG8n6OEi9hmpYnwthhsKsqzRtnqIMJjL8UanfNATRLBVIxnnrIBoh2RDwH99pEQimTKKe7w/lyAiNsbUKrM0yY9cyqgyI0XmQCVxJpwfkBUz6zyACI/pdmLWPTGnbSA6texD5+l14QjAKK3OyRA0LOOcuQg4nmwSihV5GaeBijCM6ss/SD6U4KpIncUKYBiPLPKAGhrdoAkStWWOtQgAIrxzIoHq0AMCIgBATEgIAYExICAGBAQAwJiQEAMCIgBATEgIAYExICAGBAQAwJiQEAMCIgBATEgIAYExICAGBAQAwJiQEAMCIgBAS0MkHvLtvdSQf9Qlfm1MEBVWW9QKb2NKgzI035jco7/Tm4G5MvsQTVvpSyEUBlJAtKM9P+20Xvlp2lxgMymO71nSm0s28oPPiD1fcw+qNFaHCBTO6sStv/00fDyAJmcNe01g3FaHCC9Y9O9L7hUZcwDZHbjDb1OOLWWB0gXJJ1FZHXz6od2Dirrg9ouGZAsXv/TxUznk6MiFvd3Fim0QEDl6ttm+3hpi9haw5q/xV8goMPD73UnyGQe2aZLKoeH693hQZhWrCpmzEcLBOS2w+sdwBKGyjbqeLm/2H7QnCelLhHQosSAgBgQEAMCYkBADAiIAQExICAGBMSAgBgQEAMCYkBADAiIAQExICAGBMSAgBgQEAMCYkBADAiIAQExIKD/A1R+YLYXBa7xAAAAAElFTkSuQmCC" /><!-- --></p>
+<p>The histogram and density curve suggest approximate normality, making
+the use of a t-test reasonable in this scenario.</p>
+</div>
+</div>
+<div id="permutation-test-for-difference-in-means" class="section level2">
+<h2>Permutation Test for Difference in Means</h2>
+<p>When assumptions such as normality or equal variances are
+questionable, permutation tests provide a flexible, distribution-free
+alternative. The validity of the permutation test relies on
+exchangeability under the null hypothesis; when the two groups arise
+from the same distribution, all label permutations are equally
+likely.</p>
+<div id="hypothesis-setup" class="section level3">
+<h3>Hypothesis Setup</h3>
+<p>We test</p>
+<p><span class="math display">\[H_0: \mu_X - \mu_Y = 0\]</span></p>
+<p>versus</p>
+<p><span class="math display">\[H_A: \mu_X - \mu_Y \neq 0.\]</span></p>
+<p>The test statistic is the difference in sample means,</p>
+<p><span class="math display">\[T = \bar{X} - \bar{Y}.\]</span></p>
+<p>The permutation distribution of <span class="math inline">\(T\)</span> is approximated by repeatedly permuting
+group labels and recomputing the statistic. The two-sided p-value is
+computed as</p>
+<p><span class="math display">\[p = \frac{1 + \sum_{b=1}^{B}
+\mathbf{1}(|T_b| \geq |T_\text{obs}|)}{B + 1},\]</span></p>
+<p>where <span class="math inline">\(T_b\)</span> is the statistic on
+the <span class="math inline">\(b\)</span>-th permutation and <span class="math inline">\(T_\text{obs}\)</span> is the observed statistic.
+The <span class="math inline">\(+1\)</span> in the numerator and
+denominator counts the observed data itself, ensuring the p-value is
+never exactly zero.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>perm_res <span class="ot">&lt;-</span> <span class="fu">perm_test</span>(x, y, <span class="at">B =</span> <span class="dv">1000</span>, <span class="at">seed =</span> <span class="dv">1</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>perm_res<span class="sc">$</span>p_value</span></code></pre></div>
+<pre><code>## [1] 0.3146853</code></pre>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">hist</span>(perm_res<span class="sc">$</span>perm_stats, <span class="at">breaks =</span> <span class="dv">30</span>, <span class="at">col =</span> <span class="st">&quot;lightgray&quot;</span>,</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">&quot;Permutation Distribution of Mean Difference&quot;</span>,</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">&quot;Mean Difference&quot;</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span>  perm_res<span class="sc">$</span>obs_stat, <span class="at">col =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">1</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span> <span class="sc">-</span>perm_res<span class="sc">$</span>obs_stat, <span class="at">col =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">&quot;topright&quot;</span>,</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>       <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">&quot;Observed statistic&quot;</span>, <span class="st">&quot;Mirror (two-sided)&quot;</span>),</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>       <span class="at">col    =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lty =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">lwd =</span> <span class="dv">2</span>)</span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,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" /><!-- --></p>
+<p>The permutation distribution is approximately symmetric and centred
+at zero under the null, as expected. The observed statistic (solid red
+line) falls well within the bulk of the distribution, consistent with
+the large p-value.</p>
+</div>
+</div>
+<div id="monte-carlo-comparison-of-tests-under-normality" class="section level2">
+<h2>Monte Carlo Comparison of Tests Under Normality</h2>
+<p>To study the long-run behavior of the t-test and permutation test, a
+Monte Carlo experiment is conducted under the null hypothesis (<span class="math inline">\(\delta = 0\)</span>) with normally distributed
+data. The significance level is fixed at <span class="math inline">\(\alpha = 0.05\)</span>.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>mc_res <span class="ot">&lt;-</span> <span class="fu">mc_compare_tests</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="at">nsim  =</span> <span class="dv">500</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="at">n1    =</span> <span class="dv">30</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">n2    =</span> <span class="dv">30</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">dist  =</span> <span class="st">&quot;normal&quot;</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="at">delta =</span> <span class="dv">0</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fl">0.05</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  <span class="at">seed  =</span> <span class="dv">42</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>)</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>mc_res</span></code></pre></div>
+<pre><code>## $rejection_rates
+##           t_test permutation_test 
+##            0.066            0.062</code></pre>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>perm_rate <span class="ot">&lt;-</span> mc_res<span class="sc">$</span>rejection_rates[<span class="st">&quot;permutation_test&quot;</span>]</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>t_rate    <span class="ot">&lt;-</span> mc_res<span class="sc">$</span>rejection_rates[<span class="st">&quot;t_test&quot;</span>]</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>mc_se_perm <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(perm_rate <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> perm_rate) <span class="sc">/</span> <span class="dv">500</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>mc_se_t    <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(t_rate    <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> t_rate)    <span class="sc">/</span> <span class="dv">500</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="fu">c</span>(<span class="at">permutation_mc_se =</span> <span class="fu">round</span>(mc_se_perm, <span class="dv">4</span>),</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>  <span class="at">t_test_mc_se      =</span> <span class="fu">round</span>(mc_se_t,    <span class="dv">4</span>))</span></code></pre></div>
+<pre><code>## permutation_mc_se.permutation_test                t_test_mc_se.t_test 
+##                             0.0108                             0.0111</code></pre>
+<p>Both the permutation test and the classical t-test maintain Type I
+error rates close to the nominal 0.05 level under normal data. The Monte
+Carlo standard error for each estimated rejection rate is approximately
+<span class="math inline">\(\sqrt{\hat{p}(1 - \hat{p}) /
+n_\text{sim}}\)</span>, equal to 0.0108 and 0.0111 for the permutation
+and t-test respectively. Both estimates fall within two Monte Carlo
+standard errors of the nominal level, indicating correct calibration
+when model assumptions are satisfied.</p>
+</div>
+<div id="behavior-under-non-normal-data" class="section level2">
+<h2>Behavior Under Non-Normal Data</h2>
+<p>Next, we consider a setting where the normality assumption is
+violated by simulating data from an exponential distribution. Unlike the
+normal, the exponential is strongly right-skewed and does not satisfy
+the distributional assumptions of the t-test.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>exp_data <span class="ot">&lt;-</span> <span class="fu">simulate_two_sample</span>(</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="at">n1    =</span> <span class="dv">30</span>,</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="at">n2    =</span> <span class="dv">30</span>,</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="at">dist  =</span> <span class="st">&quot;exponential&quot;</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="at">delta =</span> <span class="dv">0</span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>)</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a><span class="fu">hist</span>(exp_data<span class="sc">$</span>x, <span class="at">probability =</span> <span class="cn">TRUE</span>, <span class="at">col =</span> <span class="st">&quot;lightgray&quot;</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">&quot;Histogram of Exponential Data&quot;</span>,</span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">&quot;Value&quot;</span>)</span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">density</span>(exp_data<span class="sc">$</span>x), <span class="at">lwd =</span> <span class="dv">2</span>)</span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,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" /><!-- --></p>
+<p>The strong right skew confirms the departure from normality. We now
+evaluate Type I error for both tests under this distribution.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>mc_exp <span class="ot">&lt;-</span> <span class="fu">mc_compare_tests</span>(</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="at">nsim  =</span> <span class="dv">500</span>,</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="at">n1    =</span> <span class="dv">30</span>,</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="at">n2    =</span> <span class="dv">30</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  <span class="at">dist  =</span> <span class="st">&quot;exponential&quot;</span>,</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>  <span class="at">delta =</span> <span class="dv">0</span>,</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fl">0.05</span>,</span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>  <span class="at">seed  =</span> <span class="dv">42</span></span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a>)</span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a>mc_exp</span></code></pre></div>
+<pre><code>## $rejection_rates
+##           t_test permutation_test 
+##             0.04             0.04</code></pre>
+<p>Both tests maintain Type I error close to the nominal 0.05 level even
+under skewed data at this sample size, suggesting both are reasonably
+robust. We also evaluate power under a location shift of <span class="math inline">\(\delta = 0.8\)</span>.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>mc_power <span class="ot">&lt;-</span> <span class="fu">mc_compare_tests</span>(</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  <span class="at">nsim  =</span> <span class="dv">500</span>,</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="at">n1    =</span> <span class="dv">30</span>,</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>  <span class="at">n2    =</span> <span class="dv">30</span>,</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>  <span class="at">dist  =</span> <span class="st">&quot;exponential&quot;</span>,</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>  <span class="at">delta =</span> <span class="fl">0.8</span>,</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fl">0.05</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>  <span class="at">seed  =</span> <span class="dv">42</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>)</span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a>mc_power</span></code></pre></div>
+<pre><code>## $rejection_rates
+##           t_test permutation_test 
+##            0.858            0.872</code></pre>
+<p>Under a location shift, both tests exhibit increased empirical power.
+Their relative performance under skewed data is informative: the
+permutation test does not rely on parametric distributional assumptions,
+so differences in rejection rates reflect the robustness of each
+approach to departures from normality.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a>summary_table <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>  <span class="at">Normal_Null =</span> mc_res<span class="sc">$</span>rejection_rates,</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>  <span class="at">Exp_Null    =</span> mc_exp<span class="sc">$</span>rejection_rates,</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>  <span class="at">Exp_Power   =</span> mc_power<span class="sc">$</span>rejection_rates</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>)</span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a><span class="fu">round</span>(summary_table, <span class="dv">3</span>)</span></code></pre></div>
+<pre><code>##             t_test permutation_test
+## Normal_Null  0.066            0.062
+## Exp_Null     0.040            0.040
+## Exp_Power    0.858            0.872</code></pre>
+<p>Table 1 summarizes empirical rejection rates across all scenarios.
+These results are based on moderate sample sizes (<span class="math inline">\(n_1 = n_2 = 30\)</span>); smaller samples may
+exhibit increased Type I error distortion or reduced power under
+skewness.</p>
+</div>
+<div id="discussion" class="section level2">
+<h2>Discussion</h2>
+<p>These examples demonstrate how Monte Carlo simulation and permutation
+tests can be used both for statistical inference and for evaluating the
+operating characteristics of testing procedures.</p>
+<p>Under normality, the permutation test and the classical t-test
+exhibit nearly identical performance in terms of Type I error control
+and power. This reflects the asymptotic equivalence of permutation and
+parametric procedures when distributional assumptions are satisfied: the
+t-test is optimal in this setting, and the permutation test recovers
+similar behavior <span class="citation">(Fisher 1935)</span>.</p>
+<p>Under skewed exponential data, both tests continue to maintain Type I
+error close to the nominal level at moderate sample sizes, illustrating
+the robustness of the t-test to moderate skewness due to the central
+limit theorem, which ensures approximate normality of the sampling
+distribution of the mean for sufficiently large samples. In contrast,
+the t-test relies on asymptotic normality or parametric assumptions for
+validity. The permutation test retains exact finite-sample validity
+under exchangeability, providing theoretical guarantees that do not
+depend on distributional assumptions. This makes it a natural choice
+when the underlying distribution is unknown or non-normal.</p>
+<p>The Monte Carlo framework used here — repeatedly generating data,
+applying each test, and recording rejections — is a standard technique
+for studying the empirical properties of statistical procedures. By
+varying the sample size, effect size, and distribution, one can
+construct power curves and robustness assessments that go well beyond
+what analytical derivations typically provide.</p>
+<p>A practical limitation of the permutation test is computational cost:
+with <span class="math inline">\(B\)</span> permutations per test and
+<span class="math inline">\(n_\text{sim}\)</span> Monte Carlo
+replications, the total number of statistic evaluations is <span class="math inline">\(B \times n_\text{sim}\)</span>. For large-scale
+simulation studies, efficient implementations — such as the pooled
+t-statistic computed directly rather than via repeated calls to
+<code>t.test()</code> — are important for feasibility.</p>
+</div>
+<div id="generative-ai-statement" class="section level2">
+<h2>Generative AI Statement</h2>
+<p>Generative AI tools were used to assist with refactoring
+<code>functions.R</code> and <code>test_functions.R</code> into an R
+package structure, debugging Shiny reactive logic, implementing async
+computation via the <code>future</code> and <code>promises</code>
+packages, and improving code clarity. All statistical reasoning,
+implementation decisions, and final writing were completed by the
+author.</p>
+</div>
+<div id="references" class="section level2 unnumbered">
+<h2 class="unnumbered">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-efron1994introduction" class="csl-entry">
+Efron, Bradley, and Robert J. Tibshirani. 1994. <em>An Introduction to
+the Bootstrap</em>. Chapman; Hall/CRC. <a href="https://doi.org/10.1201/9780429246593">https://doi.org/10.1201/9780429246593</a>.
+</div>
+<div id="ref-fisher1935design" class="csl-entry">
+Fisher, R. A. 1935. <span>“The Design of Experiments.”</span> <em>Oliver
+and Boyd</em>. <a href="https://ia600809.us.archive.org/15/items/in.ernet.dli.2015.502684/2015.502684.The-Design_text.pdf">https://ia600809.us.archive.org/15/items/in.ernet.dli.2015.502684/2015.502684.The-Design_text.pdf</a>.
+</div>
+<div id="ref-good2005permutation" class="csl-entry">
+Good, Phillip. 2005. <em>Permutation, Parametric and Bootstrap Tests of
+Hypotheses</em>. Springer. <a href="https://doi.org/10.1007/b138696">https://doi.org/10.1007/b138696</a>.
+</div>
+<div id="ref-r2023" class="csl-entry">
+R Core Team. 2023. <em>R: A Language and Environment for Statistical
+Computing</em>. Vienna, Austria: R Foundation for Statistical Computing.
+<a href="https://www.R-project.org/">https://www.R-project.org/</a>.
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
