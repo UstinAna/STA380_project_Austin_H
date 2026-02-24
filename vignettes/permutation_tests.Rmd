@@ -238,6 +238,6 @@ A practical limitation of the permutation test is computational cost: with $B$ p
 
 ## Generative AI Statement
 
-Generative AI tools were used to assist with debugging and improving code clarity. All statistical reasoning, implementation decisions, and final writing were completed by the author.
+Generative AI tools were used to assist with refactoring `functions.R` and `test_functions.R` into an R package structure, debugging Shiny reactive logic, implementing async computation via the `future` and `promises` packages, and improving code clarity. All statistical reasoning, implementation decisions, and final writing were completed by the author.
 
 ## References
