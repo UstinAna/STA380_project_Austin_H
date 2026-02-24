@@ -197,6 +197,7 @@ ui <- page_sidebar(
     # Tab 1: Permutation Distribution
     nav_panel(
       title = tagList(bs_icon("bar-chart-fill"), " Permutation Test"),
+      value = "perm",
       layout_columns(
         col_widths = c(7, 5),
 
@@ -231,6 +232,7 @@ ui <- page_sidebar(
     # Tab 2: Power Curve
     nav_panel(
       title = tagList(bs_icon("graph-up"), " Power Curve"),
+      value = "power",
       card(
         card_header(class = "bg-primary text-white",
                     bs_icon("graph-up"), " Power vs Effect Size"),
@@ -247,6 +249,7 @@ ui <- page_sidebar(
     # Tab 3: Robustness Study
     nav_panel(
       title = tagList(bs_icon("shield-check"), " Robustness Study"),
+      value = "robust",
       card(
         card_header(class = "bg-info text-white",
                     bs_icon("shield-check"), " Type I Error and Power Across Distributions"),

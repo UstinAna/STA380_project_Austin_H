@@ -5,11 +5,11 @@ library(shinyjs)
 
 server <- function(input, output, session) {
 
-  run_id    <- reactiveVal(0)
-  cancel_id <- reactiveVal(0)
-  tabs_rendered <- reactiveVal(character(0))
-
-  is_cancelled <- function() cancel_id() >= run_id() && run_id() > 0
+  run_id      <- reactiveVal(0)
+  cancel_id   <- reactiveVal(0)
+  # Track which tabs have rendered for the current run_id
+  rendered_tabs <- reactiveVal(character(0))
+  is_cancelled <- reactive({ cancel_id() >= run_id() && run_id() > 0 })
 
   show_overlay <- function() {
     shinyjs::runjs('
@@ -30,7 +30,7 @@ server <- function(input, output, session) {
   observeEvent(input$run, {
     message("[RUN] fired, old run_id=", run_id(), " cancel_id=", cancel_id())
     show_overlay()
-    tabs_rendered(character(0))
+    rendered_tabs(character(0))
     run_id(run_id() + 1)
     message("[RUN] new run_id=", run_id())
   })
@@ -41,10 +41,9 @@ server <- function(input, output, session) {
     hide_overlay()
   }, ignoreInit = TRUE)
 
+  # Show overlay when switching to a lazy tab mid-run (only if not yet completed)
   observeEvent(input$tabs, {
-    if (run_id() > 0 && !is_cancelled() && !(input$tabs %in% tabs_rendered())) {
-      show_overlay()
-    }
+    if (run_id() > 0 && !is_cancelled() && !(input$tabs %in% rendered_tabs())) show_overlay()
   }, ignoreInit = TRUE)
 
   sim_data <- reactive({
@@ -101,7 +100,7 @@ server <- function(input, output, session) {
       )
     })
     do.call(rbind, results)
-  })
+  }) |> bindCache(run_id())
 
   robust_res <- reactive({
     req(run_id() > 0, !is_cancelled())
@@ -132,7 +131,7 @@ server <- function(input, output, session) {
       )
     })
     list(type1 = do.call(rbind, type1), power = do.call(rbind, power))
-  })
+  }) |> bindCache(run_id())
 
   # ── Tab 1 Outputs ──────────────────────────────────────────────────────
 
@@ -172,7 +171,7 @@ server <- function(input, output, session) {
       theme_minimal(base_size = 13) +
       theme(plot.title = element_text(face = "bold", colour = input$col_hist))
 
-    tabs_rendered(union(tabs_rendered(), "Permutation Test"))
+    rendered_tabs(union(rendered_tabs(), "perm"))
     hide_overlay()
     p
   })
@@ -252,7 +251,7 @@ server <- function(input, output, session) {
       theme_minimal(base_size = 13) +
       theme(plot.title = element_text(face = "bold", colour = "#6C63FF"), legend.position = "top")
 
-    tabs_rendered(union(tabs_rendered(), "Power Curve"))
+    rendered_tabs(union(rendered_tabs(), "power"))
     hide_overlay()
     p
   })
@@ -301,7 +300,7 @@ server <- function(input, output, session) {
       theme_minimal(base_size = 13) +
       theme(plot.title = element_text(face = "bold", colour = "#6C63FF"), legend.position = "top")
 
-    tabs_rendered(union(tabs_rendered(), "Robustness Study"))
+    rendered_tabs(union(rendered_tabs(), "robust"))
     hide_overlay()
     p
   })
