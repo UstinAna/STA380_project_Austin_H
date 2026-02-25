@@ -1,0 +1,10 @@
+name: shiny
+title:
+username: cwnp9f-austin-hua
+account: cwnp9f-austin-hua
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 16756461
+bundleId: 11626104
+url: https://cwnp9f-austin-hua.shinyapps.io/shiny/
+version: 1

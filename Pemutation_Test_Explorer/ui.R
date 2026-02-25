@@ -163,14 +163,14 @@ ui <- page_sidebar(
         "Plot Colours", value = "plot",
         icon = bs_icon("palette"),
 
-        colourInput("col_hist", "Histogram colour:",
-                    value = "#6C63FF"),
+        colourpicker::colourInput("col_hist", "Histogram colour:",
+                                  value = "#6C63FF"),
 
-        colourInput("col_obs", "Observed statistic line:",
-                    value = "#F8A04B"),
+        colourpicker::colourInput("col_obs", "Observed statistic line:",
+                                  value = "#F8A04B"),
 
-        colourInput("col_mirror", "Mirror line:",
-                    value = "#2DCE89"),
+        colourpicker::colourInput("col_mirror", "Mirror line:",
+                                  value = "#2DCE89"),
 
         checkboxInput("show_tdist",
                       "Overlay theoretical t-distribution (t-stat only)",
